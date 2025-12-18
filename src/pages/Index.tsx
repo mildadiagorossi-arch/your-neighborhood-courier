@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import CategoryNav from "@/components/CategoryNav";
 import RestaurantGrid from "@/components/RestaurantGrid";
+import Map from "@/components/Map";
 
 const Index = () => {
   return (
@@ -10,6 +11,17 @@ const Index = () => {
       <main>
         <HeroSection />
         <CategoryNav />
+        
+        {/* Map Section */}
+        <section className="py-12">
+          <div className="container">
+            <h2 className="text-2xl md:text-3xl font-bold mb-6">
+              Restaurants à proximité
+            </h2>
+            <Map />
+          </div>
+        </section>
+        
         <RestaurantGrid />
       </main>
       
