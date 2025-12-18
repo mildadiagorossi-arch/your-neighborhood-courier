@@ -1,11 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 import { useCart } from '@/contexts/CartContext';
-import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
+import { useOrders } from '@/contexts/OrderContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { Minus, Plus, Trash2, ShoppingBag, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 const CartSidebar = () => {
   const { items, isOpen, setIsOpen, updateQuantity, removeItem, total, clearCart } = useCart();
+  const { createOrder } = useOrders();
+  const { user } = useAuth();
+  const [isCheckout, setIsCheckout] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState<string | null>(null);
+  const [customerInfo, setCustomerInfo] = useState({
+    name: user?.firstName ? `${user.firstName} ${user.lastName}` : '',
+    address: user?.address || '',
+    phone: user?.phone || ''
+  });
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -92,18 +106,97 @@ const CartSidebar = () => {
                 </div>
               </div>
 
-              <Button className="w-full" size="lg">
-                Commander • {(total + 2.99).toFixed(2)} €
-              </Button>
-              
-              <button 
-                onClick={clearCart}
-                className="w-full text-sm text-muted-foreground hover:text-destructive transition-colors"
-              >
-                Vider le panier
-              </button>
+              {!isCheckout ? (
+                <>
+                  <Button className="w-full" size="lg" onClick={() => setIsCheckout(true)}>
+                    Commander • {(total + 2.99).toFixed(2)} €
+                  </Button>
+                  
+                  <button 
+                    onClick={clearCart}
+                    className="w-full text-sm text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    Vider le panier
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nom complet</Label>
+                    <Input
+                      id="name"
+                      value={customerInfo.name}
+                      onChange={(e) => setCustomerInfo(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Votre nom"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Adresse de livraison</Label>
+                    <Input
+                      id="address"
+                      value={customerInfo.address}
+                      onChange={(e) => setCustomerInfo(prev => ({ ...prev, address: e.target.value }))}
+                      placeholder="123 Rue Example, 75001 Paris"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Téléphone</Label>
+                    <Input
+                      id="phone"
+                      value={customerInfo.phone}
+                      onChange={(e) => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="06 12 34 56 78"
+                    />
+                  </div>
+                  <Button 
+                    className="w-full" 
+                    size="lg"
+                    disabled={!customerInfo.name || !customerInfo.address || !customerInfo.phone}
+                    onClick={() => {
+                      const order = createOrder(items, customerInfo);
+                      setOrderPlaced(order.id);
+                      clearCart();
+                      toast.success('Commande passée avec succès !', {
+                        description: `Numéro de commande: ${order.id}`
+                      });
+                    }}
+                  >
+                    Confirmer la commande • {(total + 2.99).toFixed(2)} €
+                  </Button>
+                  <button 
+                    onClick={() => setIsCheckout(false)}
+                    className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Retour au panier
+                  </button>
+                </div>
+              )}
             </div>
           </>
+        )}
+
+        {/* Order Confirmation */}
+        {orderPlaced && (
+          <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="w-10 h-10 text-green-600" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">Commande confirmée !</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              Numéro: {orderPlaced}
+            </p>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setOrderPlaced(null);
+                setIsCheckout(false);
+                setIsOpen(false);
+                window.location.href = `/orders/${orderPlaced}`;
+              }}
+            >
+              Suivre ma commande
+            </Button>
+          </div>
         )}
       </SheetContent>
     </Sheet>

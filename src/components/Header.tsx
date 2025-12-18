@@ -1,4 +1,4 @@
-import { MapPin, ShoppingBag, User, Menu, LogOut } from "lucide-react";
+import { MapPin, ShoppingBag, User, Menu, LogOut, Package, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -62,6 +62,18 @@ const Header = () => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem disabled className="font-medium">
                     {user?.firstName} {user?.lastName}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/orders">
+                      <Package className="w-4 h-4 mr-2" />
+                      Mes commandes
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/pos">
+                      <LayoutDashboard className="w-4 h-4 mr-2" />
+                      Interface POS
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="w-4 h-4 mr-2" />
